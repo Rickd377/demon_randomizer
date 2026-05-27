@@ -16,7 +16,7 @@
 	},
   "resources": {
     "sprites": [
-      "res/*.png"
+      "resources/*.png"
     ]
   }
 }
