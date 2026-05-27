@@ -1,0 +1,22 @@
+{
+	"geode": "5.7.1",
+	"gd": {
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
+	},
+	"id": "nvrmnd377.demon-randomizer",
+	"name": "Demon Randomizer",
+	"version": "v1.0.0",
+	"developer": "NVRMND377",
+	"description": "Gives a random skillset based demon, or not",
+	"dependencies": {
+		"geode.node-ids": ">=v1.23.3"
+	},
+  "resources": {
+    "sprites": [
+      "res/*.png"
+    ]
+  }
+}
