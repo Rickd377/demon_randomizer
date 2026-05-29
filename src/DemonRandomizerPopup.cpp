@@ -1,8 +1,8 @@
 #include <Geode/Geode.hpp>
 
-using namespace geode::prelude;
+#include "gddl.h"
 
-std::string getCompletedDemonLevelIDs();
+using namespace geode::prelude;
 
 class DemonRandomizerPopup : public FLAlertLayer {
   public:
@@ -28,12 +28,21 @@ class DemonRandomizerPopup : public FLAlertLayer {
       bg->setID("demon_randomizer-popup-bg"_spr);
       m_mainLayer->addChild(bg, -1);
 
-      auto demonText = getCompletedDemonLevelIDs();
-      auto textLabel = CCLabelBMFont::create(demonText.c_str(), "bigFont.fnt");
+      auto textLabel = CCLabelBMFont::create("Loading...", "bigFont.fnt");
       textLabel->setScale(0.35f);
       textLabel->setAnchorPoint(ccp(0.5f, 0.5f));
       textLabel->setPosition(ccp(winSize.width / 2.0f, winSize.height / 2.0f - 5.0f));
+      textLabel->setID("demon_randomizer-tags-label"_spr);
       m_mainLayer->addChild(textLabel);
+
+      fetchFirstCompletedDemonTags([this](int levelID, std::string tags) {
+        if (auto label = typeinfo_cast<CCLabelBMFont*>(
+          m_mainLayer->getChildByID("demon_randomizer-tags-label"_spr)
+        )) {
+          std::string text = "Level " + std::to_string(levelID) + ": " + tags;
+          label->setString(text.c_str());
+        }
+      });
 
       auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
       closeSprite->setScale(0.8f);
