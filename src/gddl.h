@@ -1,7 +1,10 @@
 #pragma once
 #include <Geode/Geode.hpp>
 #include <functional>
+#include <vector>
 using namespace geode::prelude;
 
-void fetchDemonTags(int levelID, std::function<void(std::string)> callback);
-void fetchFirstCompletedDemonTags(std::function<void(int, std::string)> callback);
+void fetchAllCompletedDemonTags(
+  std::function<void(int current, int total)> onProgress,
+  std::function<void()> onComplete
+);
