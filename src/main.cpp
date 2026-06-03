@@ -21,7 +21,7 @@ class $modify(MyLevelSearchLayer, LevelSearchLayer) {
         menu_selector(MyLevelSearchLayer::onButtonClick)
       );
 
-      button->setID("randomizer-button");
+      button->setID("demon_randomizer-button"_spr);
       otherFilterMenu->addChild(button);
 
       auto iconSprite = CCSprite::create("btn-icon.png"_spr);

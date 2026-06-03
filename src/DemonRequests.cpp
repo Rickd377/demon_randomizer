@@ -1,5 +1,5 @@
 #include <Geode/Geode.hpp>
-#include "gddl.h"
+#include "Util/gddlUtil.h"
 #include <Geode/utils/web.hpp>
 #include <Geode/binding/GameLevelManager.hpp>
 #include <thread>
@@ -7,7 +7,8 @@
 #include <mutex>
 using namespace geode::prelude;
 
-static const std::string GDDL_API_KEY = "YOUR_ROTATED_KEY_HERE";
+static const std::string GDDL_API_KEY = "22619628f6630ae8613e936a8b91325d742bbb198d9cd4a11820620fa88babba";
+
 static std::mutex s_cacheMutex;
 
 bool isCached(int levelID) {
@@ -21,6 +22,49 @@ void writeCacheEntry(int levelID, std::vector<std::string> tags) {
     joined += tags[i];
   }
   Mod::get()->setSavedValue("tags_" + std::to_string(levelID), joined);
+}
+
+void fetchAllAvailableTags(std::function<void(std::vector<GDDLTag>)> onComplete) {
+  std::string url = "https://gdladder.com";
+  auto req = web::WebRequest();
+  req.header("Authorization", "Bearer " + GDDL_API_KEY);
+
+  log::debug("Fetching all global GDDL tags...");
+
+  async::spawn(
+    req.get(url),
+    [onComplete](web::WebResponse resp) {
+      std::vector<GDDLTag> tagsList;
+
+      if (resp.ok()) {
+        auto json = resp.json();
+        if (json.isOk()) {
+          auto val = json.unwrap();
+
+          if (val.isArray()) {
+            for (auto const& tagElement : val.asArray().unwrap()) {
+              GDDLTag tag;
+
+              if (tagElement.contains("id")) {
+                tag.id = tagElement["id"].asInt().unwrapOrDefault();
+              }
+              if (tagElement.contains("name")) {
+                tag.name = tagElement["name"].asString().unwrapOrDefault();
+              }
+
+              tagsList.push_back(tag);
+            }
+          }
+        }
+      } else {
+        log::warn("Failed to fetch GDDL tags: HTTP {}", resp.code());
+      }
+
+      Loader::get()->queueInMainThread([onComplete, tagsList]() {
+        onComplete(tagsList);
+      });
+    }
+  );
 }
 
 void fetchAllCompletedDemonTags(
