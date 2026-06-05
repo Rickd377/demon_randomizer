@@ -18,5 +18,13 @@
     "sprites": [
       "resources/*.png"
     ]
+  },
+  "settings": {
+    "api-key": {
+      "type": "string",
+      "name": "GDDL API Key",
+      "description": "Your GDDL API key from gdladder.com/settings/developer",
+      "default": ""
+    }
   }
 }

@@ -4,6 +4,11 @@ This mod gets all your completed demons. Based on your choices you get generated
 
 ---
 
+## Instructions (very important):
+- Go to 'https://gdladder.com/settings/developer' and generate an API key
+- Go to the mod settings and paste your API key there
+- Now it should work
+
 ### Here is what options you can choose from:
 
 - Demon Difficulty
@@ -16,10 +21,14 @@ This mod gets all your completed demons. Based on your choices you get generated
 - Play demons that are more fun to play
 - Improve at skillsets you are not very good at yet
 
-### Instructions:
+### Navigation instructions:
 
 1. From the main menu, click the creator tab
 2. Navigate to the level search page
 3. Click the button with a demon face button on the right of the screen
 4. Adjust the difficulty settings as you please
-5. Click the button "Personalized" or "Challenge Me" to get your random level
+5. Click the button "Generate" or "Challenge" to get your random level
+
+---
+
+This project is made using the GDDL API
