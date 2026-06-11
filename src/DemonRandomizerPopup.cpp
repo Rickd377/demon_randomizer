@@ -112,9 +112,13 @@ class DemonRandomizerPopup final: public FLAlertLayer, public LevelDownloadDeleg
       m_mainContainer->removeAllChildrenWithCleanup(true);
       auto msg = LabelUtil::createScaledLabel(
         "Please set your GDDL API key in the mod settings.",
-        "bigFont.fnt", 0.4f, m_popupInnerSize.width
+        "bigFont.fnt", 0.3f, m_popupInnerSize.width
       );
+      auto emptyOne = CCNode::create();
+      auto emptyTwo = CCNode::create();
+      m_mainContainer->addChild(emptyOne);
       m_mainContainer->addChild(msg);
+      m_mainContainer->addChild(emptyTwo);
       m_mainContainer->updateLayout();
       return;
     }
