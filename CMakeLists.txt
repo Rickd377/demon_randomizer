@@ -13,13 +13,6 @@ project(DemonRandomizer VERSION 1.0.0)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    INTERPROCEDURAL_OPTIMIZATION FALSE
-    DISABLE_PRECOMPILE_HEADERS ON
-)
-target_compile_options(${PROJECT_NAME} PRIVATE /GL- /Z7)
-target_link_options(${PROJECT_NAME} PRIVATE /LTCG:OFF)
-
 if (NOT DEFINED ENV{GEODE_SDK})
     message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
 else()
