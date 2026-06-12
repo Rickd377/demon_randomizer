@@ -9,17 +9,17 @@ namespace LabelUtil {
     auto label = CCLabelBMFont::create(text, font);
     if (!label) return nullptr;
 
-    label -> setScale(scale);
+    label->setScale(scale);
 
     if (wrapWidth > 0.0f) {
-      label -> setWidth(wrapWidth / scale);
-      label -> setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+      label->setWidth(wrapWidth / scale);
+      label->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     }
 
-    label -> setLayoutOptions(
+    label->setLayoutOptions(
       AxisLayoutOptions::create()
         ->setAutoScale(false)
-        ->setLength(label -> getContentHeight() * scale)
+        ->setLength(label->getContentHeight() * scale)
     );
 
     return label;

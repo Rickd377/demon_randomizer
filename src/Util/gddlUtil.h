@@ -2,7 +2,6 @@
 #include <Geode/Geode.hpp>
 #include <functional>
 #include <vector>
-#include <string>
 
 void fetchAllCompletedDemonTags(
   std::function <void(int current, int total)> onProgress,

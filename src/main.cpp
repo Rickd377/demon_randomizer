@@ -11,22 +11,24 @@ class $modify(MyLevelSearchLayer, LevelSearchLayer) {
       return false;
     }
 
-    auto otherFilterMenu = this -> getChildByID("other-filter-menu");
+    auto otherFilterMenu = this->getChildByID("other-filter-menu");
     auto btnSprite = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
-    btnSprite -> setScale(0.8f);
+    btnSprite->setScale(0.8f);
     auto button = CCMenuItemSpriteExtra::create(
       btnSprite,
       this,
       menu_selector(MyLevelSearchLayer::onButtonClick)
     );
 
-    button -> setID("demon_randomizer-button"_spr);
-    otherFilterMenu -> addChild(button);
+    button->setID("demon_randomizer-button"_spr);
+    otherFilterMenu->addChild(button);
 
     auto iconSprite = CCSprite::create("btn-icon.png"_spr);
-    iconSprite -> setScale(0.45f);
-    iconSprite -> setPosition(button -> getContentSize() / 2);
-    button -> addChild(iconSprite);
+    iconSprite->setScale(0.45f);
+    iconSprite->setPosition(button->getContentSize() / 2);
+    button->addChild(iconSprite);
+
+    static_cast<CCMenu*>(otherFilterMenu)->updateLayout();
 
     return true;
   }

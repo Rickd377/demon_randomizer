@@ -2,13 +2,11 @@
 #include "Util/gddlUtil.h"
 #include <Geode/utils/web.hpp>
 #include <Geode/binding/GameLevelManager.hpp>
-#include <Geode/binding/LevelInfoLayer.hpp>
 #include <Geode/utils/string.hpp>
 #include <thread>
 #include <chrono>
 #include <mutex>
 #include <random>
-#include <fstream>
 #include <unordered_set>
 #include <unordered_map>
 #include <algorithm>
@@ -24,79 +22,19 @@ static std::string getApiKey() {
   return Mod::get()->getSettingValue<std::string>("api-key");
 }
 
-static auto getCacheFilePath() {
-  return Mod::get()->getSaveDir() / "saved.json";
-}
-
-static std::unordered_map<int, std::vector<std::string>> s_tagCache;
-static bool s_cacheLoaded = false;
-
-static void ensureCacheLoaded() {
-  if (s_cacheLoaded) return;
-  s_cacheLoaded = true;
-
-  std::ifstream file(getCacheFilePath());
-  if (!file.is_open()) return;
-
-  auto result = matjson::Value::parse(file);
-  if (!result.isOk()) return;
-
-  auto root = result.unwrap();
-  if (!root.isObject()) return;
-
-  for (auto& [key, val] : root) {
-    auto idResult = geode::utils::numFromString<int>(key);
-    if (!idResult) continue;
-    int id = idResult.unwrap();
-
-    std::vector<std::string> tags;
-    if (val.isArray()) {
-      for (auto const& tagVal : val) {
-        auto str = tagVal.asString();
-        if (str.isOk()) tags.push_back(str.unwrap());
-      }
-    }
-    s_tagCache[id] = std::move(tags);
-  }
-}
-
-static void flushCacheToDisk() {
-  auto obj = matjson::Value::object();
-  for (auto const& [id, tags] : s_tagCache) {
-    auto arr = matjson::Value::array();
-    for (auto const& tag : tags)
-      arr.push(matjson::Value(tag));
-    obj.set(std::to_string(id), arr);
-  }
-
-  std::ofstream file(getCacheFilePath());
-  if (!file.is_open()) return;
-  file << obj.dump();
-}
-
 bool isCached(int levelID) {
-  return Mod::get()->hasSavedValue("tags_" + std::to_string(levelID));
+  return !Mod::get()->getSavedValue<std::vector<std::string>>(
+    "tags_" + std::to_string(levelID)
+  ).empty();
 }
 
 void writeCacheEntry(int levelID, std::vector<std::string> tags) {
   if (tags.empty()) return;
-  std::string joined;
-  for (size_t i = 0; i < tags.size(); i++) {
-    if (i > 0) joined += ",";
-    joined += tags[i];
-  }
-  Mod::get()->setSavedValue("tags_" + std::to_string(levelID), joined);
+  Mod::get()->setSavedValue("tags_" + std::to_string(levelID), tags);
 }
 
 std::vector<std::string> readCacheEntry(int levelID) {
-  std::string raw = Mod::get()->getSavedValue<std::string>("tags_" + std::to_string(levelID));
-  std::vector<std::string> result;
-  if (raw.empty()) return result;
-  std::stringstream ss(raw);
-  std::string token;
-  while (std::getline(ss, token, ','))
-    result.push_back(token);
-  return result;
+  return Mod::get()->getSavedValue<std::vector<std::string>>("tags_" + std::to_string(levelID));
 }
 
 void fetchAllCompletedDemonTags(
@@ -109,19 +47,19 @@ void fetchAllCompletedDemonTags(
   }
 
   auto * glm = GameLevelManager::sharedState();
-  auto * levels = glm -> getSavedLevels(false, 0);
+  auto * levels = glm->getSavedLevels(false, 0);
   if (!levels) {
     onComplete();
     return;
   }
 
   std::vector <int> toFetch;
-  for (int i = 0; i <(int) levels -> count(); i++) {
-    auto* level = static_cast <GJGameLevel*> (levels -> objectAtIndex(i));
+  for (int i = 0; i <(int) levels->count(); i++) {
+    auto* level = static_cast <GJGameLevel*> (levels->objectAtIndex(i));
     if (!level) continue;
-    if (level -> m_demon.value() == 0) continue;
-    if (level -> m_normalPercent.value() < 100) continue;
-    int id = level -> m_levelID.value();
+    if (level->m_demon.value() == 0) continue;
+    if (level->m_normalPercent.value() < 100) continue;
+    int id = level->m_levelID.value();
     if (!isCached(id)) toFetch.push_back(id);
   }
 
@@ -170,12 +108,12 @@ void fetchAllCompletedDemonTags(
             auto json = resp.json();
             if (json.isOk()) {
               auto val = json.unwrap();
-              if (val.isArray()) {
-                for (auto const& tag: val.asArray().unwrap()) {
-                  auto tagObj = tag["Tag"];
-                  if (tagObj.contains("Name"))
-                    tags.push_back(tagObj["Name"].asString().unwrapOrDefault());
-                }
+              auto arr = val.asArray();
+              if (!arr.isOk()) return;
+              for (auto const& tag: arr.unwrap()) {
+                auto tagObj = tag["Tag"];
+                if (tagObj.contains("Name"))
+                  tags.push_back(tagObj["Name"].asString().unwrapOrDefault());
               }
             }
           } else {
@@ -199,7 +137,7 @@ void fetchAllCompletedDemonTags(
       int capturedId = id;
       int capturedCount = count;
       std::vector < std::string > capturedTags = tags;
-      Loader::get() -> queueInMainThread([capturedId, capturedTags, capturedCount, total, onProgress, onComplete]() {
+      Loader::get()->queueInMainThread([capturedId, capturedTags, capturedCount, total, onProgress, onComplete]() {
         writeCacheEntry(capturedId, capturedTags);
         onProgress(capturedCount, total);
         if (capturedCount >= total) onComplete();
@@ -243,17 +181,17 @@ void generateRandomDemon(
   }
 
   auto* glm = GameLevelManager::sharedState();
-  auto* saved = glm -> getSavedLevels(false, 0);
+  auto* saved = glm->getSavedLevels(false, 0);
 
   std::unordered_set <int> completedIDs;
   std::unordered_map <std::string, int> tagFreq;
 
   if (saved) {
-    for (int i = 0; i <(int) saved -> count(); i++) {
-      auto* lvl = static_cast < GJGameLevel * > (saved -> objectAtIndex(i));
-      if (!lvl || lvl -> m_demon.value() == 0 || lvl -> m_normalPercent.value() < 100) continue;
-      completedIDs.insert(lvl -> m_levelID.value());
-      for (auto const& tag: readCacheEntry(lvl -> m_levelID.value()))
+    for (int i = 0; i <(int) saved->count(); i++) {
+      auto* lvl = static_cast < GJGameLevel * > (saved->objectAtIndex(i));
+      if (!lvl || lvl->m_demon.value() == 0 || lvl->m_normalPercent.value() < 100) continue;
+      completedIDs.insert(lvl->m_levelID.value());
+      for (auto const& tag: readCacheEntry(lvl->m_levelID.value()))
         tagFreq[tag]++;
     }
   }
@@ -322,7 +260,9 @@ void generateRandomDemon(
           }
 
           std::vector<int> candidates;
-          for (auto const& lvl : root["levels"].asArray().unwrap()) {
+          auto levelsArr = root["levels"].asArray();
+          if (!levelsArr.isOk()) return;
+          for (auto const& lvl : levelsArr.unwrap()) {
             int id = lvl["ID"].asInt().unwrapOrDefault();
             if (id == 0 || completedIDs.count(id)) continue;
             candidates.push_back(id);
@@ -360,15 +300,15 @@ void generateRandomDemon(
                     auto tagJson = tagResp.json();
                     if (tagJson.isOk()) {
                       auto tagVal = tagJson.unwrap();
-                      if (tagVal.isArray()) {
-                        for (auto const& tagEl : tagVal.asArray().unwrap()) {
-                          std::string name;
-                          if (tagEl.contains("Tag") && tagEl["Tag"].contains("Name"))
-                            name = tagEl["Tag"]["Name"].asString().unwrapOrDefault();
-                          auto it = tagFreq.find(name);
-                          if (it != tagFreq.end())
-                            score += it->second;
-                        }
+                      auto tagValArr = tagVal.asArray();
+                      if (!tagValArr.isOk()) return;
+                      for (auto const& tagEl : tagValArr.unwrap()) {
+                        std::string name;
+                        if (tagEl.contains("Tag") && tagEl["Tag"].contains("Name"))
+                          name = tagEl["Tag"]["Name"].asString().unwrapOrDefault();
+                        auto it = tagFreq.find(name);
+                        if (it != tagFreq.end())
+                          score += it->second;
                       }
                     }
                   }
