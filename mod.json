@@ -6,8 +6,8 @@
 		"mac": "2.2081",
 		"ios": "2.2081"
 	},
-	"id": "nvrmnd377.demon-randomizer",
-	"name": "Demon Randomizer",
+	"id": "nvrmnd377.randomized-demon",
+	"name": "Randomized Demon",
 	"version": "v1.0.0",
 	"developer": "NVRMND377",
 	"description": "Gives a random skillset based demon, or not",
